@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { Segment, Input, Button } from 'semantic-ui-react';
-import uuidv4 from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 import '../../assets/Messages.css';
 import firebase from '../../firebase/firebase';
+import { uploadBytesResumable } from 'firebase/storage';
 import FileModal from './FileModal';
+import { uploadFileToStorage } from '../../actions/messages';
 
-const MessageForm = ({ messagesRef, channel, user }) => {
+const MessageForm = ({
+    messagesRef,
+    channel,
+    user,
+    uploadFileToStorage,
+    storageRef
+}) => {
     const [_messageData, setMessageData] = useState({
         value: ''
     });
@@ -14,8 +24,6 @@ const MessageForm = ({ messagesRef, channel, user }) => {
         setMessageData({ ..._messageData, [e.target.name]: e.target.value });
 
     const [_loading, setLoading] = useState(false);
-
-    const [_storageRef, setStorageRef] = useState(firebase.storage().ref());
 
     const createMessage = (fileUrl = null) => {
         const message = {
@@ -31,7 +39,7 @@ const MessageForm = ({ messagesRef, channel, user }) => {
         } else {
             message['value'] = _messageData.value;
         }
-        console.log('creating message');
+        console.log('sending message');
         console.log(message);
         return message;
     };
@@ -59,49 +67,50 @@ const MessageForm = ({ messagesRef, channel, user }) => {
     const openModal = () => setModal(true);
 
     const [_uploadState, setUploadState] = useState(false);
-    const [_uploadTask, setUploadTask] = useState(null);
+    const [_beginUpload, setBeginUpload] = useState(null);
     const [_percentUploaded, setPercentUploaded] = useState(0);
 
     const uploadFile = (file, metadata) => {
-        const filePath = `chat/public/${uuidv4}.jpg`;
-
         setUploadState('uploading');
-        setUploadTask(_storageRef.child(filePath).put(file, metadata));
+        console.log('uploading.....');
+
+        const filePath = `chat/public/${uuidv4()}.jpg`;
+
+        const fileData = {
+            file: file,
+            filePath: filePath,
+            metadata: metadata
+        };
+        uploadFileToStorage(fileData);
     };
 
     useEffect(() => {
-        if (channel && messagesRef && _uploadTask) {
+        if (channel && messagesRef && storageRef) {
             try {
-                console.log('about to upload image');
-                const pathToUpload = channel.id;
-                const ref = messagesRef;
-
-                console.log(`ref: ${ref}`);
-                console.log(`path to upload: ${pathToUpload}`);
-
-                _uploadTask.on(
+                storageRef.on(
                     'state_changed',
                     (snap) => {
                         const percentUploaded = Math.round(
                             (snap.bytesTransferred / snap.totalBytes) * 100
                         );
                         setPercentUploaded(percentUploaded);
-                        console.log('setting percent load ' + percentUploaded);
+                        console.log(`upload is ${percentUploaded}% done`);
+                    },
+                    (err) => {
+                        console.error(err);
                     },
                     () => {
-                        console.log('about to get download url');
-                        _uploadTask.snapshot.ref
+                        console.log('getting file to display in message');
+                        const pathToUpload = channel.id;
+                        const ref = messagesRef;
+                        storageRef.snapshot.ref
                             .getDownloadURL()
                             .then((downloadUrl) => {
-                                console.log(`download url: ${downloadUrl}`);
-                                console.log(`ref: ${ref}`);
-                                console.log(`path to upload: ${pathToUpload}`);
                                 sendFileMessage(downloadUrl, ref, pathToUpload);
                             })
                             .catch((err) => {
                                 console.error(err);
                                 setUploadState('error');
-                                setUploadTask(null);
                             });
                     }
                 );
@@ -109,7 +118,7 @@ const MessageForm = ({ messagesRef, channel, user }) => {
                 console.error(err);
             }
         }
-    }, [_uploadTask]);
+    }, [storageRef]);
 
     const sendFileMessage = (fileUrl, ref, pathToUpload) => {
         ref.child(pathToUpload)
@@ -161,4 +170,15 @@ const MessageForm = ({ messagesRef, channel, user }) => {
     );
 };
 
-export default MessageForm;
+MessageForm.propTypes = {
+    uploadFileToStorage: PropTypes.func.isRequired,
+    storageRef: PropTypes.object
+};
+
+const mapStateToProps = (state) => ({
+    storageRef: state.message.storageRef
+});
+
+export default connect(mapStateToProps, {
+    uploadFileToStorage
+})(MessageForm);
