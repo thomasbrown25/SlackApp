@@ -4,13 +4,15 @@ import {
     ADD_CHANNEL_ERROR,
     GET_CHANNELS,
     GET_CHANNELS_ERROR,
-    SET_CURRENT_CHANNEL
+    SET_CURRENT_CHANNEL,
+    SET_PRIVATE_CHANNEL
 } from '../actions/types';
 import firebase from '../firebase/firebase';
 
 const initialState = {
     channels: [],
     currentChannel: null,
+    isPrivateChannel: false,
     channelsRef: firebase.database().ref('channels'),
     error: {},
     loading: true
@@ -41,6 +43,12 @@ function channelReducer(state = initialState, action) {
             return {
                 ...state,
                 currentChannel: payload
+            };
+
+        case SET_PRIVATE_CHANNEL:
+            return {
+                ...state,
+                isPrivateChannel: payload
             };
 
         case GET_CHANNELS_ERROR:

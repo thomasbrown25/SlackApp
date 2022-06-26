@@ -11,12 +11,12 @@ import Messages from '../messages/Messages';
 import MetaPanel from '../meta-panel/MetaPanel';
 
 //Actions
-import { getCurrentProfile, getTransactions } from '../../actions/profile';
 
 const Dashboard = ({
     auth: { user },
     profile: { profile },
-    currentChannel
+    currentChannel,
+    isPrivateChannel
 }) => {
     return (
         <Grid columns='equal' className='app' style={{ background: '#eee' }}>
@@ -28,6 +28,7 @@ const Dashboard = ({
                     key={currentChannel && currentChannel.id}
                     currentChannel={currentChannel}
                     user={user}
+                    isPrivateChannel={isPrivateChannel}
                 />
             </Grid.Column>
 
@@ -46,7 +47,8 @@ Dashboard.propTypes = {
 const mapStateToProps = (state) => ({
     auth: state.auth,
     profile: state.profile,
-    currentChannel: state.channel.currentChannel
+    currentChannel: state.channel.currentChannel,
+    isPrivateChannel: state.channel.isPrivateChannel
 });
 
 export default connect(mapStateToProps, {})(Dashboard);

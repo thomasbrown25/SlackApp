@@ -23,7 +23,7 @@ import { Provider } from 'react-redux';
 import store from './store';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
-import './assets/App.css';
+import './assets/app.css';
 import 'semantic-ui-css/semantic.min.css';
 
 const App = () => {

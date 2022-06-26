@@ -3,18 +3,21 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Segment, Input, Button } from 'semantic-ui-react';
 import { v4 as uuidv4 } from 'uuid';
-import '../../assets/Messages.css';
 import firebase from '../../firebase/firebase';
 import { uploadBytesResumable } from 'firebase/storage';
 import FileModal from './FileModal';
 import { uploadFileToStorage } from '../../actions/messages';
+import ProgressBar from './ProgressBar';
+import '../../assets/messages.css';
 
 const MessageForm = ({
     messagesRef,
     channel,
     user,
     uploadFileToStorage,
-    storageRef
+    storageRef,
+    isPrivateChannel,
+    getMessagesRef
 }) => {
     const [_messageData, setMessageData] = useState({
         value: ''
@@ -24,6 +27,14 @@ const MessageForm = ({
         setMessageData({ ..._messageData, [e.target.name]: e.target.value });
 
     const [_loading, setLoading] = useState(false);
+
+    const [modal, setModal] = useState(false);
+    const closeModal = () => setModal(false);
+    const openModal = () => setModal(true);
+
+    const [_uploadState, setUploadState] = useState(false);
+    const [_beginUpload, setBeginUpload] = useState(null);
+    const [_percentUploaded, setPercentUploaded] = useState(0);
 
     const createMessage = (fileUrl = null) => {
         const message = {
@@ -47,7 +58,7 @@ const MessageForm = ({
     const sendMessage = () => {
         if (_messageData && _messageData.value) {
             setLoading(true);
-            messagesRef
+            getMessagesRef()
                 .child(channel.id)
                 .push()
                 .set(createMessage())
@@ -62,19 +73,11 @@ const MessageForm = ({
         }
     };
 
-    const [modal, setModal] = useState(false);
-    const closeModal = () => setModal(false);
-    const openModal = () => setModal(true);
-
-    const [_uploadState, setUploadState] = useState(false);
-    const [_beginUpload, setBeginUpload] = useState(null);
-    const [_percentUploaded, setPercentUploaded] = useState(0);
-
     const uploadFile = (file, metadata) => {
         setUploadState('uploading');
         console.log('uploading.....');
 
-        const filePath = `chat/public/${uuidv4()}.jpg`;
+        const filePath = `${getPath()}/${uuidv4()}.jpg`;
 
         const fileData = {
             file: file,
@@ -82,6 +85,14 @@ const MessageForm = ({
             metadata: metadata
         };
         uploadFileToStorage(fileData);
+    };
+
+    const getPath = () => {
+        if (isPrivateChannel) {
+            return `chat/private-${channel.id}`;
+        } else {
+            return 'chat/public';
+        }
     };
 
     useEffect(() => {
@@ -102,7 +113,7 @@ const MessageForm = ({
                     () => {
                         console.log('getting file to display in message');
                         const pathToUpload = channel.id;
-                        const ref = messagesRef;
+                        const ref = getMessagesRef();
                         storageRef.snapshot.ref
                             .getDownloadURL()
                             .then((downloadUrl) => {
@@ -149,23 +160,28 @@ const MessageForm = ({
                     onClick={sendMessage}
                     disabled={_loading}
                     color='orange'
-                    content='Add Reply'
+                    content='Send'
                     labelPosition='left'
                     icon='edit'
                 />
                 <Button
                     onClick={openModal}
+                    disabled={_uploadState === 'uploading'}
                     color='teal'
-                    content='Upload Media'
+                    content='Add Media'
                     labelPosition='right'
                     icon='cloud upload'
                 />
-                <FileModal
-                    modal={modal}
-                    closeModal={closeModal}
-                    uploadFile={uploadFile}
-                />
             </Button.Group>
+            <FileModal
+                modal={modal}
+                closeModal={closeModal}
+                uploadFile={uploadFile}
+            />
+            <ProgressBar
+                uploadState={_uploadState}
+                percentUploaded={_percentUploaded}
+            />
         </Segment>
     );
 };
