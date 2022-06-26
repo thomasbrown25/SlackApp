@@ -1,8 +1,14 @@
 import React from 'react';
 import { Header, Segment, Input, Icon } from 'semantic-ui-react';
-import '../../assets/Messages.css';
+import '../../assets/messages.css';
 
-const MessagesHeader = ({ auth }) => {
+const MessagesHeader = ({
+    channelName,
+    numUniqueUsers,
+    onSearchChange,
+    searchLoading,
+    isPrivateChannel
+}) => {
     return (
         <Segment clearing>
             {/* Channel Title */}
@@ -13,15 +19,20 @@ const MessagesHeader = ({ auth }) => {
                 style={{ marginBottom: 0 }}
             >
                 <span>
-                    Channel
+                    {channelName}
+                    {!isPrivateChannel && (
+                        <Icon name='star outline' color='black' />
+                    )}
                     <Icon name='star outline' color='black' />
                 </span>
-                <Header.Subheader>2 Users</Header.Subheader>
+                <Header.Subheader>{numUniqueUsers}</Header.Subheader>
             </Header>
 
             {/* Channel Search Input */}
             <Header floated='right'>
                 <Input
+                    loading={searchLoading}
+                    onChange={onSearchChange}
                     size='mini'
                     icon='search'
                     name='searchTerm'

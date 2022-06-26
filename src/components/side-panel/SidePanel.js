@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Menu } from 'semantic-ui-react';
 import UserPanel from './UserPanel';
 import Channels from './Channels';
+import DirectMessages from './DirectMessages';
 
 const SidePanel = ({ user }) => {
     return (
@@ -16,6 +17,7 @@ const SidePanel = ({ user }) => {
         >
             <UserPanel user={user} />
             <Channels user={user} />
+            <DirectMessages user={user} />
         </Menu>
     );
 };

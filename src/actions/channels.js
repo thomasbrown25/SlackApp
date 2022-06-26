@@ -4,7 +4,8 @@ import {
     ADD_CHANNEL_ERROR,
     GET_CHANNELS,
     GET_CHANNELS_ERROR,
-    SET_CURRENT_CHANNEL
+    SET_CURRENT_CHANNEL,
+    SET_PRIVATE_CHANNEL
 } from './types';
 import firebase from '../firebase';
 
@@ -71,5 +72,13 @@ export const setCurrentChannel = (channel) => async (dispatch) => {
     dispatch({
         type: SET_CURRENT_CHANNEL,
         payload: channel
+    });
+};
+
+// Set Private Channel
+export const setPrivateChannel = (isPrivateChannel) => async (dispatch) => {
+    dispatch({
+        type: SET_PRIVATE_CHANNEL,
+        payload: isPrivateChannel
     });
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Comment, Image } from 'semantic-ui-react';
 import moment from 'moment';
-import '../../assets/Messages.css';
+import '../../assets/messages.css';
 
 const Message = ({ message, user }) => {
     //check to see if user is the one who wrote the comment/message for visual effects

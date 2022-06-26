@@ -5,7 +5,8 @@ import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
 import {
     addChannel,
     getChannels,
-    setCurrentChannel
+    setCurrentChannel,
+    setPrivateChannel
 } from '../../actions/channels';
 import firebase from '../../firebase';
 
@@ -14,6 +15,7 @@ const Channels = ({
     addChannel,
     getChannels,
     setCurrentChannel,
+    setPrivateChannel,
     channel: { channels, channelsRef }
 }) => {
     useEffect(() => {
@@ -21,6 +23,12 @@ const Channels = ({
     }, []);
 
     const [_channelsFromFirebase, setChannelsFromFirebase] = useState([]);
+
+    const [_messagesRef, setMessagesRef] = useState(
+        firebase.database().ref('messages')
+    );
+    const [_channel, setChannel] = useState();
+    const [_notifications, setNotifications] = useState();
 
     //bandaid put into place for race condition because the components were not updating once props were updated using the store.
     const initializeChannels = () => {
@@ -34,14 +42,6 @@ const Channels = ({
                 });
                 setChannelsFromFirebase(channelsList);
                 console.log('set channels from firebase');
-                console.log(channelsList);
-                // if (channels == null && channelsFromFirebase != null) {
-                //     console.log(
-                //         'channels were not set initially, re-running getChannels()'
-                //     );
-                //     getChannels();
-                // }
-                // setFirstChannel();
             });
     };
 
@@ -54,6 +54,8 @@ const Channels = ({
     const changeChannel = (channel) => {
         setCurrentChannel(channel);
         setActiveChannel(channel.id);
+        setPrivateChannel(false);
+        setChannel(channel);
     };
 
     const setFirstChannel = () => {
@@ -70,13 +72,59 @@ const Channels = ({
 
     const addListeners = () => {
         console.log('hit add listener');
-        let _channels = [];
+        let loadedChannels = [];
         channelsRef.on('child_added', (snap) => {
-            _channels.push(snap.val());
+            loadedChannels.push(snap.val());
+            setChannelsFromFirebase(loadedChannels);
+            addNotificationListener(snap.key);
         });
-        setChannelsFromFirebase(_channels);
-        //setLoadedChannels({ loadedChannels: _loadedChannels });
-        //console.log(loadedChannels);
+    };
+
+    const addNotificationListener = (channelId) => {
+        _messagesRef.child(channelId).on('value', (snap) => {
+            if (_channel) {
+                handleNotifications(
+                    channelId,
+                    _channel.id,
+                    _notifications,
+                    snap
+                );
+            }
+        });
+    };
+
+    const handleNotifications = (
+        channelId,
+        currentChannelId,
+        notifications,
+        snap
+    ) => {
+        let lastTotal = 0;
+
+        let index = notifications.findIndex(
+            (notification) => notification.id === channelId
+        );
+
+        if (index !== -1) {
+            if (channelId !== currentChannelId) {
+                lastTotal = notifications[index].total;
+
+                if (snap.numChildren() - lastTotal > 0) {
+                    notifications[index].count = snap.numChildren() - lastTotal;
+                }
+            }
+            notifications[index].lastKnownTotal = snap.numChildren();
+        } else {
+            notifications.push({
+                id: channelId,
+                total: snap.numChildren(),
+                lastKnownTotal: snap.numChildren(),
+                count: 0
+            });
+        }
+        console.log('set notification');
+        console.log(notifications);
+        setNotifications(notifications);
     };
 
     useEffect(() => {
@@ -142,7 +190,7 @@ const Channels = ({
 
     return (
         <Fragment>
-            <Menu.Menu style={{ paddingBottom: '2em' }}>
+            <Menu.Menu className='menu'>
                 <Menu.Item>
                     <span>
                         <Icon name='exchange' /> CHANNELS
@@ -196,6 +244,7 @@ Channels.propTypes = {
     addChannel: PropTypes.func.isRequired,
     getChannels: PropTypes.func.isRequired,
     setCurrentChannel: PropTypes.func.isRequired,
+    setPrivateChannel: PropTypes.func.isRequired,
     channel: PropTypes.object.isRequired,
     channels: PropTypes.array.isRequired
 };
@@ -208,5 +257,6 @@ const mapStateToProps = (state) => ({
 export default connect(mapStateToProps, {
     addChannel,
     getChannels,
-    setCurrentChannel
+    setCurrentChannel,
+    setPrivateChannel
 })(Channels);
