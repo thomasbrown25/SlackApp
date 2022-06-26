@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Segment, Input, Button } from 'semantic-ui-react';
 import { v4 as uuidv4 } from 'uuid';
-import '../../assets/Messages.css';
 import firebase from '../../firebase';
 import { uploadBytesResumable } from 'firebase/storage';
 import FileModal from './FileModal';

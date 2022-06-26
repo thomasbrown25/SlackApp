@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { useResolvedPath } from 'react-router-dom';
 import { Menu, Icon } from 'semantic-ui-react';
 import { setCurrentChannel, setPrivateChannel } from '../../actions/channels';
-import firebase from '../../firebase/firebase';
+import firebase from '../../firebase';
 
 const DirectMessages = ({ user, setCurrentChannel, setPrivateChannel }) => {
     useEffect(() => {

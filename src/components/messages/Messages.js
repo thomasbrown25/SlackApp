@@ -4,7 +4,7 @@ import { Segment, Comment } from 'semantic-ui-react';
 import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import Message from './Message';
-import '../../assets/Messages.css';
+import '../../assets/messages.css';
 import firebase from '../../firebase';
 
 const Messages = ({ currentChannel, user, isPrivateChannel }) => {
@@ -12,10 +12,12 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
         firebase.database().ref('messages')
     );
 
-    const [_messages, setMessages] = useState({
-        messages: [],
-        messagesLoading: true
-    });
+    // const [_messages, setMessages] = useState({
+    //     messages: [],
+    //     messagesLoading: true
+    // });
+    const [_messages, setMessages] = useState([]);
+    const [_messagesLoading, setMessagesLoading] = useState(true);
     const [_numUniqueUsers, setNumUniqueUsers] = useState('');
 
     const [_searchTerm, setSearchTerm] = useState('');
@@ -41,15 +43,17 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
 
         const ref = getMessagesRef();
 
+        console.log('loading messages...');
         ref.child(channelId).on('child_added', (snap) => {
             loadedMessages.push(snap.val());
-            setMessages({
-                messages: loadedMessages,
-                messagesLoading: false
-            });
+            setMessages([...loadedMessages]);
+            setMessagesLoading(false);
+            // setMessages({
+            //     messages: loadedMessages,
+            //     messagesLoading: false
+            // });
             countUniqueUsers(loadedMessages);
         });
-        console.log('loading messages...');
     };
 
     const countUniqueUsers = (messages) => {
@@ -66,14 +70,6 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
     // displaying private and public channels differently
     const displayChannelName = (channel) => {
         return channel ? `${isPrivateChannel ? '@' : '#'}${channel.name}` : '';
-    };
-
-    const displayMessages = (messages) => {
-        if (messages.length > 0) {
-            return messages.map((msg) => (
-                <Message key={msg.timestamp} message={msg} user={user} />
-            ));
-        }
     };
 
     const onSearchChange = (e) => {
@@ -97,7 +93,7 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
     }, [_triggerSearch]);
 
     const searchMessages = () => {
-        const channelMessages = [..._messages.messages];
+        const channelMessages = [..._messages];
         const regex = new RegExp(_searchTerm, 'gi');
         console.log(`searching term ${_searchTerm}`);
         console.log(channelMessages);
@@ -118,6 +114,14 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
         return isPrivateChannel ? _privateMessagesRef : _messagesRef;
     };
 
+    const displayMessages = (messages) => {
+        if (messages.length > 0) {
+            return messages.map((msg) => (
+                <Message key={msg.timestamp} message={msg} user={user} />
+            ));
+        }
+    };
+
     return (
         <Fragment>
             <MessagesHeader
@@ -133,7 +137,7 @@ const Messages = ({ currentChannel, user, isPrivateChannel }) => {
                     {/* Messages */}
                     {_searchTerm
                         ? displayMessages(_searchResults)
-                        : displayMessages(_messages.messages)}
+                        : displayMessages(_messages)}
                 </Comment.Group>
             </Segment>
 
