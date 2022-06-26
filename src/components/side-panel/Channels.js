@@ -7,7 +7,7 @@ import {
     getChannels,
     setCurrentChannel
 } from '../../actions/channels';
-import firebase from '../../firebase/firebase';
+import firebase from '../../firebase';
 
 const Channels = ({
     user,

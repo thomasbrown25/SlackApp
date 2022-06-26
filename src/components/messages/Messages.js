@@ -5,7 +5,7 @@ import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import Message from './Message';
 import '../../assets/Messages.css';
-import firebase from '../../firebase/firebase';
+import firebase from '../../firebase';
 
 const Messages = ({ currentChannel, user }) => {
     const [_messagesRef, setMessagesRef] = useState(

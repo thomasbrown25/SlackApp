@@ -9,7 +9,7 @@ import {
     LOGOUT,
     SAVE_USER
 } from './types';
-import firebase from '../firebase/firebase';
+import firebase from '../firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import md5 from 'md5';
 

@@ -5,7 +5,7 @@ import {
     UPLOAD_FILE_ERROR,
     GET_FILE_ERROR
 } from './types';
-import firebase from '../firebase/firebase';
+import firebase from '../firebase';
 
 // Add Channel
 export const uploadFileToStorage = (fileData) => async (dispatch) => {

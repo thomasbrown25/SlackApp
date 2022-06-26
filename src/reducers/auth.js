@@ -8,7 +8,7 @@ import {
     LOGOUT,
     ACCOUNT_DELETED
 } from '../actions/types';
-import firebase from '../firebase/firebase';
+import firebase from '../firebase';
 
 const initialState = {
     isAuthenticated: null,

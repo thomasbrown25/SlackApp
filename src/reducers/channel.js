@@ -6,7 +6,7 @@ import {
     GET_CHANNELS_ERROR,
     SET_CURRENT_CHANNEL
 } from '../actions/types';
-import firebase from '../firebase/firebase';
+import firebase from '../firebase';
 
 const initialState = {
     channels: [],
